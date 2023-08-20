@@ -1,7 +1,13 @@
 package com.qmd.jzen.api
 
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.preference.PreferenceManager
+import com.arialyy.aria.core.Aria
 import com.orhanobut.logger.Logger
 import com.qmd.jzen.entity.Cookie
+import com.qmd.jzen.utils.Config
+import com.qmd.jzen.utils.FileUtil
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -19,8 +25,21 @@ object ApiSource {
 
     // QQ音乐
     const val QQMUSICBASEURL = "https://u.y.qq.com/"
+
     // 服务器端
     const val SERVERURL = "http://127.0.0.1/"
+
+    private var preferences: SharedPreferences? = null
+
+    var url: String
+        get() {
+            return preferences!!.getString("serverurl", "http://127.0.0.1:8080/") ?: "http://127.0.0.1:8080/"
+        }
+        set(urlStr) {
+            val editor = preferences!!.edit()
+            editor.putString("serverurl", urlStr)
+            editor.apply()
+        }
 
     class AuthInterceptor : Interceptor {
 
@@ -36,6 +55,17 @@ object ApiSource {
             return chain.proceed(request)
         }
 
+    }
+
+    fun initialize(context: Context) {
+        preferences = PreferenceManager.getDefaultSharedPreferences(context).also {
+            // 随便判断一个key是否存在，不存在则初始化
+            val editor = it.edit()
+            if (!it.contains("serverurl")) {
+                editor.putString("serverurl", "http://127.0.0.1:8080/")
+            }
+            editor.apply()
+        }
     }
 
     inline fun <reified T> getQMusicApi(): T {
@@ -65,7 +95,7 @@ object ApiSource {
             .addInterceptor(interceptor).build()
 
         val retrofit: Retrofit = Retrofit.Builder()
-            .baseUrl(SERVERURL)
+            .baseUrl(url)
             .client(client)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())

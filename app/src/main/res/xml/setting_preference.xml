@@ -2,6 +2,26 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <PreferenceCategory
+		android:key="cookie"
+		android:title="Cookie设置">
+        <Preference
+			android:key="qqmusic_key"
+			android:summary="Q_H_L_XXXXXXXXXXX"
+			android:title="qqmusic_key" />
+		<Preference
+			android:key="qqmusic_uin"
+			android:summary="123456789"
+			android:title="qqmusic_uin" />
+    </PreferenceCategory>
+	<PreferenceCategory
+		android:key="server"
+		android:title="后端服务器设置">
+		<Preference
+			android:key="serverurl"
+			android:summary="http://127.0.0.1:8080/"
+			android:title="服务器地址"/>
+	</PreferenceCategory>
+    <PreferenceCategory
         android:key="download"
         android:title="下载设置">
         <Preference

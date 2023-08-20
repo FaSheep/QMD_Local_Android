@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId "com.qmd.jzen"
         minSdk 21
-        targetSdk 29
+        targetSdk 31
         versionCode 76
         versionName "1.7.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

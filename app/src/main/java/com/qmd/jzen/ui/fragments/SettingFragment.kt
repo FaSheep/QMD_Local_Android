@@ -8,13 +8,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.files.folderChooser
+import com.afollestad.materialdialogs.input.input
 import com.afollestad.materialdialogs.list.customListAdapter
 import com.arialyy.aria.core.Aria
 import com.qmd.jzen.R
 import com.qmd.jzen.adapters.ThemeListAdapter
+import com.qmd.jzen.api.ApiSource
 import com.qmd.jzen.app.QMDApplication
+import com.qmd.jzen.entity.Cookie
 import com.qmd.jzen.ui.activity.MainActivity
 import com.qmd.jzen.utils.CacheManager
 import com.qmd.jzen.utils.Config
@@ -35,6 +39,9 @@ class SettingFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClick
     private lateinit var preferenceResetDownload: Preference
     private lateinit var preferenceNameRule: Preference
     private lateinit var preferenceThemeColor: Preference
+    private lateinit var preferenceQMkey: Preference
+    private lateinit var preferenceQMuin: Preference
+    private lateinit var preferenceServerURL: Preference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,12 +64,25 @@ class SettingFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClick
         preferenceClearCache = findPreference("clearcache")!!
         preferenceResetDownload = findPreference("resetdownload")!!
 
+        preferenceQMkey = findPreference("qqmusic_key")!!
+        preferenceQMuin = findPreference("qqmusic_uin")!!
+
+        preferenceQMkey = findPreference("qqmusic_key")!!
+        preferenceQMuin = findPreference("qqmusic_uin")!!
+
+        preferenceServerURL = findPreference("serverurl")!!
+
         // 设置点击监听
         preferenceDownloadPath.onPreferenceClickListener = this
         preferenceImagePath.onPreferenceClickListener = this
         preferenceClearCache.onPreferenceClickListener = this
         preferenceResetDownload.onPreferenceClickListener = this
         preferenceThemeColor.onPreferenceClickListener = this
+
+        preferenceQMkey.onPreferenceClickListener = this
+        preferenceQMuin.onPreferenceClickListener = this
+
+        preferenceServerURL.onPreferenceClickListener = this
 
         // 监听下载数量的变动，更改配置
         preferenceDownloadQuantity.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
@@ -82,30 +102,45 @@ class SettingFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClick
         // 设置获取缓存大小
         preferenceClearCache.summary = CacheManager.cacheSize
 
+        preferenceQMkey.summary = Cookie.getMkey()
+        preferenceQMuin.summary = Cookie.getQQ()
+
+        preferenceServerURL.summary = ApiSource.url
     }
 
     override fun onPreferenceClick(preference: Preference): Boolean {
         when (preference.key) {
             "downpath" -> MaterialDialog(requireActivity()).show {
-                folderChooser(requireActivity(), initialDirectory = File(Config.downloadPath!!), emptyTextRes = R.string.text_folder_empty)
+                folderChooser(
+                    requireActivity(),
+                    initialDirectory = File(Config.downloadPath!!),
+                    emptyTextRes = R.string.text_folder_empty
+                )
                 { _, file ->
                     Config.downloadPath = file.absolutePath
                     preferenceDownloadPath.summary = file.absolutePath
                 }
             }
+
             "imagepath" ->
                 MaterialDialog(requireActivity()).show {
-                    folderChooser(requireActivity(), initialDirectory = File(Config.downloadImagePath), emptyTextRes = R.string.text_folder_empty)
+                    folderChooser(
+                        requireActivity(),
+                        initialDirectory = File(Config.downloadImagePath),
+                        emptyTextRes = R.string.text_folder_empty
+                    )
                     { _, file ->
                         Config.downloadImagePath = file.absolutePath
                         preferenceImagePath.summary = file.absolutePath
                     }
                 }
+
             "clearcache" -> {
                 CacheManager.clearCache()
                 preference.summary = CacheManager.cacheSize
                 Toast.makeText(QMDApplication.context, "缓存清除完成。", Toast.LENGTH_SHORT).show()
             }
+
             "resetdownload" ->
                 MaterialDialog(requireActivity()).show {
                     title(text = "灾难性警告：")
@@ -116,7 +151,53 @@ class SettingFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClick
                         Toaster.out("完事！")
                     }
                 }
+
             "themecolor" -> choiceColorDialog(preference)
+
+            "qqmusic_key" -> {
+                MaterialDialog(requireActivity()).show {
+                    var strc = ""
+                    title(text = "qqmusic_key")
+                    input(callback = { dialog, str -> strc = str.toString() }).show()
+                    negativeButton { }
+                    positiveButton { dialog ->
+                        Cookie.setMkey(strc)
+                        preferenceQMkey.summary = Cookie.getMkey()
+                    }
+                }
+            }
+
+            "qqmusic_uin" -> {
+                MaterialDialog(requireActivity()).show {
+                    var strc = ""
+                    title(text = "qqmusic_uin")
+                    input(callback = { dialog, str -> strc = str.toString() }).show()
+                    negativeButton { }
+                    positiveButton { dialog ->
+                        Cookie.setQQ(strc)
+                        preferenceQMuin.summary = Cookie.getQQ()
+                    }
+                }
+            }
+
+            "serverurl" -> {
+                MaterialDialog(requireActivity()).show {
+                    var strc = ""
+                    title(text = "服务器地址")
+//                    input { dialog, str -> strc = str.toString() }
+                    input(
+                        hint = "http://127.0.0.1:8080/",
+                        prefill = preferenceServerURL.summary.toString(),
+                        callback = { dialog, str -> strc = str.toString() }).show()
+                    negativeButton { }
+                    positiveButton (text = "确定并重启APP",click = { dialog ->
+                        if (ApiSource.url.equals(strc)) return@positiveButton //不更改则忽略
+                        ApiSource.url = strc
+                        preferenceServerURL.summary = ApiSource.url
+                        restartApp()
+                    })
+                }
+            }
         }
         return false
     }

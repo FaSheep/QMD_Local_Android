@@ -19,6 +19,7 @@ import com.qmd.jzen.api.response.Notification
 import com.qmd.jzen.database.QMDRoomDatabase.Companion.getDatabase
 import com.qmd.jzen.database.repository.MusicRepository
 import com.qmd.jzen.database.repository.SearchHistoryRepository
+import com.qmd.jzen.entity.Cookie
 import com.qmd.jzen.extensions.launchWebApi
 import com.qmd.jzen.utils.*
 import com.tencent.bugly.crashreport.CrashReport
@@ -43,6 +44,8 @@ class QMDApplication : Application() {
         Toaster.init(this)
         // 配置初始化设置
         Config.initialize(this)
+        Cookie.initialize(this)
+        ApiSource.initialize(this)
         // 初始化崩溃记录
         CrashManager.manager
 
@@ -95,10 +98,10 @@ class QMDApplication : Application() {
                 EncryptAndDecrypt.decryptAndSetCookie(it)
             }
             fail {
-                Toast.makeText(context, "获取服务器数据失败，歌曲将无法下载和试听。", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "无法从服务器获取Cookie，请在设置中手动设置。", Toast.LENGTH_SHORT).show()
             }
             exception {
-                Toast.makeText(context, "获取服务器数据异常，歌曲将无法下载和试听。", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "无法从服务器获取Cookie，请在设置中手动设置。", Toast.LENGTH_SHORT).show()
             }
         }
 

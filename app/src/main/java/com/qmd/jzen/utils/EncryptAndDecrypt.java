@@ -91,22 +91,26 @@ public class EncryptAndDecrypt {
      * @return
      */
     public static boolean decryptAndSetCookie(String enStr) {
-        String text = enStr.replace("-", "").replace("|", "");
-        if (text.length() < 10 || !text.contains("%")) {
+//        String text = enStr.replace("-", "").replace("|", "");
+//        if (text.length() < 10 || !text.contains("%")) {
+//            return false;
+//        }
+//        String[] textS = text.split("%");
+//        String ekey = textS[0];
+//        String eqq = textS[1];
+//
+//        String qq = decryptDES(eqq, ekey.substring(0, 8));
+//        if (qq.length() < 8) {
+//            qq += "QMD";
+//        }
+//        String key = decryptDES(ekey, qq.substring(0, 8));
+        // 设置cookie
+//        Cookie.setCookie(key, qq);
+        String[] values = enStr.split(";");
+        if (values.length != 2) {
             return false;
         }
-        String[] textS = text.split("%");
-        String ekey = textS[0];
-        String eqq = textS[1];
-
-        String qq = decryptDES(eqq, ekey.substring(0, 8));
-        if (qq.length() < 8) {
-            qq += "QMD";
-        }
-        String key = decryptDES(ekey, qq.substring(0, 8));
-        // 设置cookie
-        Cookie.setCookie(key, qq);
-
+        Cookie.setCookie(values[0], values[1]);
         return true;
     }
 
@@ -131,7 +135,7 @@ public class EncryptAndDecrypt {
         return builder.toString();
     }
 
-    public static String encryptText(String text){
+    public static String encryptText(String text) {
         return encryptText(text, Cookie.getQQ());
     }
 
@@ -145,7 +149,7 @@ public class EncryptAndDecrypt {
         return decryptDES(text, qq.substring(0, 8));
     }
 
-    public static String decryptText(String text){
+    public static String decryptText(String text) {
         return decryptText(text, Cookie.getQQ());
     }
 }
